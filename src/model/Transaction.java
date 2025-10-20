@@ -3,6 +3,9 @@ package model;
 import java.time.LocalDateTime;
 
 public class Transaction {
+    public void setTransactionDate(LocalDateTime now) {
+    }
+
     public enum TransactionType {
         DEPOSIT,
         WITHDRAWAL
