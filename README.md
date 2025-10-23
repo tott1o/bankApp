@@ -114,7 +114,6 @@ Contributions are very welcome! If you’d like to help:
 This project is released under the **MIT License** (or choose another license, if you prefer).
 See the `LICENSE` file for details.
 
----
 
 Thank you for checking out **bankApp**!
 Feel free to open issues or send pull requests — let’s build something great together.
