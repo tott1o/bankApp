@@ -1,67 +1,77 @@
+CREATE DATABASE IF NOT EXISTS bank;
+USE bank;
 
-Table bank.customers {
-  id int [pk, increment]
-  full_name varchar
-  address varchar
-  contact_no varchar
-  email varchar
-  created_at datetime
-}
+CREATE TABLE IF NOT EXISTS customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    address VARCHAR(255),
+    contact_no VARCHAR(20),
+    email VARCHAR(100),
+    pan_number VARCHAR(20),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE IF NOT EXISTS accounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    account_type ENUM('SAVINGS', 'CURRENT', 'FIXED_DEPOSIT', 'RECURRING_DEPOSIT') NOT NULL,
+    open_date DATE NOT NULL,
+    close_date DATE,
+    balance DECIMAL(15,2) DEFAULT 0.0,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+);
 
-// Account Table
-Enum bank.account_type {
-  savings
-  current
-  fixed_deposit
-  recurring_deposit
-}
+CREATE TABLE IF NOT EXISTS transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT NOT NULL,
+    transaction_type ENUM('DEPOSIT', 'WITHDRAWAL') NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    narration VARCHAR(255),
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+);
 
-Table bank.accounts {
-  id int [pk, increment]
-  customer_id int [ref: > bank.customers.id, not null]
-  account_type bank.account_type
-  open_date date
-  close_date date
-}
+CREATE TABLE IF NOT EXISTS loans (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    loan_type ENUM('PERSONAL_LOAN','HOME_LOAN','VEHICLE_LOAN','GOLD_LOAN') NOT NULL,
+    amount_sanctioned DECIMAL(15,2) NOT NULL,
+    balance DECIMAL(15,2) NOT NULL,
+    open_date DATE NOT NULL,
+    close_date DATE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+);
 
-Enum bank.transaction_type {
-  deposit
-  withdrawal
-}
+CREATE TABLE IF NOT EXISTS loan_payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    loan_id INT NOT NULL,
+    disbursement_amount DECIMAL(15,2) NOT NULL,
+    receipt_no VARCHAR(50),
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    remaining_balance DECIMAL(15,2) NOT NULL,
+    FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE
+);
 
-Table bank.transactions {
-  id int [pk, increment]
-  account_id int [ref: > bank.accounts.id, not null]
-  transaction_type bank.transaction_type
-  amount decimal
-  date datetime
-  narration varchar
-}
+CREATE TABLE IF NOT EXISTS transfers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_account_number INT NOT NULL,
+    receiver_account_number INT,
+    receiver_bank_name VARCHAR(100),
+    ifsc_code VARCHAR(20),
+    amount DECIMAL(15,2) NOT NULL,
+    mode ENUM('NEFT','RTGS') NOT NULL,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_account_number) REFERENCES accounts(id) ON DELETE CASCADE
+);
 
-Enum bank.loan_type {
-  personal_loan
-  home_loan
-  vehicle_loan
-  gold_loan
-}
-
-Table bank.loans {
-  id int [pk, increment]
-  customer_id int [ref: > bank.customers.id, not null]
-  loan_type bank.loan_type
-  amount_sanctioned decimal
-  balance decimal
-  open_date date
-  close_date date
-}
-
-Table bank.loan_payments {
-  id int [pk, increment]
-  loan_id int [ref: > bank.loans.id, not null]
-  disbursement_amount decimal
-  receipt_no varchar
-  payment_date datetime
-  remaining_balance decimal
-}
-
+CREATE TABLE IF NOT EXISTS cheques (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT NOT NULL,
+    cheque_number VARCHAR(50) UNIQUE NOT NULL,
+    issue_date DATE NOT NULL,
+    payee_name VARCHAR(100),
+    amount DECIMAL(15,2) NOT NULL,
+    status ENUM('ISSUED','CLEARED','BOUNCED','CANCELLED') NOT NULL,
+    cleared_date DATETIME,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+);
