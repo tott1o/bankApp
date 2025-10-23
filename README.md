@@ -47,7 +47,7 @@ bankApp.iml  → IDE module file
 ### Prerequisites
 
 - Java JDK (version 11 or above recommended)  
-- A relational database (e.g., MySQL, PostgreSQL, H2)  
+- A relational database (MySQL)  
 - (Optional) An IDE such as IntelliJ IDEA, Eclipse  
 
 ### Installation
@@ -117,7 +117,7 @@ See the `LICENSE` file for details.
 ---
 
 Thank you for checking out **bankApp**!
-Feel free to open issues or send pull requests — let’s build something great together. 🚀
+Feel free to open issues or send pull requests — let’s build something great together.
 
 ```
 
