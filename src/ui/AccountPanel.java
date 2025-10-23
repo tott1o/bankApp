@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static ui.BankingAppUI.BG_SECONDARY; // Assuming BG_SECONDARY is available
+import static ui.BankingAppUI.BG_SECONDARY;
 
 public class AccountPanel extends JPanel {
     private final AccountService accountService;
@@ -46,13 +46,12 @@ public class AccountPanel extends JPanel {
         this.BORDER_COLOR = border;
         this.FORM_BG_COLOR = bgDark.brighter();
 
-        setLayout(new BorderLayout(0, 0)); // Use BorderLayout for the new structure
+        setLayout(new BorderLayout(0, 0));
         setBackground(BG_DARK);
         setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        // Initialize and arrange the new structure
         JPanel formSidebar = createFormSidebar();
-        JPanel mainContentPanel = createMainContentPanel(); // Table and controls
+        JPanel mainContentPanel = createMainContentPanel();
 
         add(formSidebar, BorderLayout.WEST);
         add(mainContentPanel, BorderLayout.CENTER);
@@ -103,6 +102,7 @@ public class AccountPanel extends JPanel {
 
         // --- Update Button for form fields (Account Type only) ---
         btnUpdateForm = createStyledButton("📝 Apply Changes", this::handleUpdateAction, BG_SECONDARY.brighter());
+        btnUpdateForm.setForeground(TEXT_LIGHT);
         JPanel updatePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         updatePanel.setBackground(FORM_BG_COLOR);
         updatePanel.setBorder(new EmptyBorder(10, 0, 10, 0));
@@ -114,11 +114,11 @@ public class AccountPanel extends JPanel {
         transactionGroup.setBackground(FORM_BG_COLOR);
         transactionGroup.setBorder(createModernTitledBorder("Quick Transactions"));
 
-        // Deposit Row
+        // Deposit Row (Uses corrected createTransactionRow)
         JPanel depositRow = createTransactionRow("Deposit:", txtDepositAmount, "💸 Deposit", this::handleDepositAction, ACCENT_COLOR);
 
-        // Withdraw Row
-        JPanel withdrawRow = createTransactionRow("Withdraw:", txtWithdrawAmount, "💳 Withdraw", this::handleWithdrawAction, new Color(231, 76, 60));
+        // Withdraw Row (Uses corrected createTransactionRow)
+        JPanel withdrawRow = createTransactionRow("💳 Withdraw:", txtWithdrawAmount, "Withdraw", this::handleWithdrawAction, new Color(231, 76, 60));
 
         transactionGroup.add(depositRow);
         transactionGroup.add(withdrawRow);
@@ -126,32 +126,67 @@ public class AccountPanel extends JPanel {
 
         // Add components to main sidebar panel
         panel.add(accountFields);
-        panel.add(updatePanel); // Add the update button after the main fields
+        panel.add(updatePanel);
         panel.add(Box.createVerticalStrut(10));
         panel.add(transactionGroup);
         panel.add(Box.createVerticalGlue());
-        panel.add(createFormButtonPanel()); // Add clear button at the bottom
+        panel.add(createFormButtonPanel());
         panel.add(Box.createVerticalStrut(10));
 
         return panel;
     }
 
+    /**
+     * CRITICAL FIX: Changed from FlowLayout to GridBagLayout to ensure the button is visible
+     * and correctly aligned horizontally with the label and text field.
+     */
     private JPanel createTransactionRow(String labelText, JTextField textField, String buttonText, Consumer<ActionEvent> action, Color buttonColor) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        // Change FlowLayout to GridBagLayout for better control
+        JPanel row = new JPanel(new GridBagLayout());
         row.setBackground(FORM_BG_COLOR);
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5); // Add small padding
+
         JLabel label = createInputLabel(labelText);
-        label.setPreferredSize(new Dimension(80, 25)); // Adjusted width for transaction labels
-        row.add(label);
+        label.setPreferredSize(new Dimension(80, 30));
 
-        textField.setPreferredSize(new Dimension(100, 25));
-        row.add(textField);
+        // 1. Label
+        gbc.gridx = 0;
+        gbc.weightx = 0; // Don't allow this column to stretch
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.WEST;
+        row.add(label, gbc);
 
+        textField.setPreferredSize(new Dimension(100, 30));
+
+        // 2. Text Field
+        gbc.gridx = 1;
+        gbc.weightx = 0.5; // Allow text field to take up some space
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        row.add(textField, gbc);
+
+        // Use the OVERLOADED createStyledButton that accepts color
         JButton button = createStyledButton(buttonText, action, buttonColor);
-        button.setForeground(TEXT_LIGHT); // Ensure text is light for color buttons
+        button.setForeground(TEXT_LIGHT);
         button.setFont(new Font("Segoe UI", Font.BOLD, 12));
         button.setBorder(new EmptyBorder(5, 10, 5, 10));
-        row.add(button);
+
+        // 3. Button
+        gbc.gridx = 2;
+        gbc.weightx = 0.5; // Allow button to take up some space
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        row.add(button, gbc);
+
+        // Create an empty panel to push components to the left
+        JPanel filler = new JPanel();
+        filler.setBackground(FORM_BG_COLOR);
+        gbc.gridx = 3;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        row.add(filler, gbc);
+
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40)); // Ensure row doesn't grow too tall
 
         return row;
     }
@@ -172,10 +207,11 @@ public class AccountPanel extends JPanel {
         row.setBackground(FORM_BG_COLOR);
         row.add(createInputLabel(labelText), BorderLayout.WEST);
 
+        // Increased size for consistency
         if (component instanceof JTextField) {
-            ((JTextField) component).setPreferredSize(new Dimension(200, 25));
+            ((JTextField) component).setPreferredSize(new Dimension(200, 30));
         } else if (component instanceof JComboBox) {
-            ((JComboBox<?>) component).setPreferredSize(new Dimension(200, 25));
+            ((JComboBox<?>) component).setPreferredSize(new Dimension(200, 30));
         }
 
         row.add(component, BorderLayout.CENTER);
@@ -186,7 +222,7 @@ public class AccountPanel extends JPanel {
         JLabel label = new JLabel(text);
         label.setForeground(TEXT_LIGHT);
         label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        label.setPreferredSize(new Dimension(110, 25));
+        label.setPreferredSize(new Dimension(110, 30)); // Adjusted height
         return label;
     }
 
@@ -198,7 +234,7 @@ public class AccountPanel extends JPanel {
         tf.setCaretColor(ACCENT_COLOR);
         tf.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(BORDER_COLOR, 1, true),
-                new EmptyBorder(5, 8, 5, 8)
+                new EmptyBorder(7, 8, 7, 8) // Increased padding for taller field
         ));
         return tf;
     }
@@ -218,8 +254,8 @@ public class AccountPanel extends JPanel {
     private JPanel createFormButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
         panel.setBackground(FORM_BG_COLOR);
-        btnClear = createStyledButton("Clear Form", this::handleClearAction, ACCENT_COLOR.darker());
-        btnClear.setForeground(TEXT_LIGHT); // Set text light for consistency
+        btnClear = createStyledButton("🧹 Clear Form", this::handleClearAction, ACCENT_COLOR.darker());
+        btnClear.setForeground(TEXT_LIGHT);
         panel.add(btnClear);
         return panel;
     }
@@ -231,11 +267,9 @@ public class AccountPanel extends JPanel {
         panel.setBackground(BG_DARK);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        // 1. Header/Toolbar Panel (Top)
         JPanel toolbarPanel = createToolbarPanel();
         panel.add(toolbarPanel, BorderLayout.NORTH);
 
-        // 2. Table Panel (Center)
         JPanel tablePanel = createTablePanel();
         panel.add(tablePanel, BorderLayout.CENTER);
 
@@ -247,19 +281,17 @@ public class AccountPanel extends JPanel {
         panel.setBackground(BG_DARK);
         panel.setBorder(new EmptyBorder(0, 0, 15, 0));
 
-        // Left Side: Title
         JLabel titleLabel = new JLabel("Account List (Core Banking)");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         titleLabel.setForeground(TEXT_LIGHT);
         panel.add(titleLabel, BorderLayout.WEST);
 
-        // Right Side: Action Buttons (Main actions that apply to the data set)
         JPanel buttonGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonGroup.setBackground(BG_DARK);
 
-        btnAddMain = createStyledButton("➕ Open New Account", this::handleAddAction, ACCENT_COLOR);
-        btnDeleteMain = createStyledButton("❌ Close Account", this::handleDeleteAction, Color.RED.darker());
-        btnRefresh = createStyledButton("⟳ Refresh", this::handleRefreshAction, BG_SECONDARY);
+        btnAddMain = createStyledButton(" Open New Account", this::handleAddAction, ACCENT_COLOR);
+        btnDeleteMain = createStyledButton(" Close Account", this::handleDeleteAction, Color.RED.darker());
+        btnRefresh = createStyledButton(" Refresh", this::handleRefreshAction, BG_SECONDARY);
 
         buttonGroup.add(btnRefresh);
         buttonGroup.add(btnDeleteMain);
@@ -269,7 +301,7 @@ public class AccountPanel extends JPanel {
         return panel;
     }
 
-    // Overloaded to accept Consumer<ActionEvent> and Color
+    // Overloaded Styled Button Method (Action, Color)
     private JButton createStyledButton(String text, Consumer<ActionEvent> action, Color bgColor) {
         JButton button = new JButton(text);
         button.setBackground(bgColor);
@@ -279,7 +311,6 @@ public class AccountPanel extends JPanel {
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.addActionListener(action::accept);
 
-        // Hover effect
         Color hoverBg = bgColor.brighter();
         button.addChangeListener(e -> {
             if (button.getModel().isRollover()) {
@@ -368,7 +399,7 @@ public class AccountPanel extends JPanel {
                     account.getCustomerId(),
                     account.getAccountType(),
                     account.getOpenDate(),
-                    String.format("$%,.2f", account.getBalance()) // Format balance
+                    String.format("rs.%,.2f", account.getBalance()) // Format balance
             });
         }
     }
@@ -377,8 +408,8 @@ public class AccountPanel extends JPanel {
         txtId.setText(tableModel.getValueAt(row, 0).toString());
         txtCustomerId.setText(tableModel.getValueAt(row, 1).toString());
         cmbAccountType.setSelectedItem(tableModel.getValueAt(row, 2).toString());
-        // Remove currency symbols for editing/display purposes
-        String balanceStr = tableModel.getValueAt(row, 4).toString().replace("$", "").replace(",", "");
+
+        String balanceStr = tableModel.getValueAt(row, 4).toString().replace("rs.", "").replace(",", "");
         txtBalance.setText(balanceStr);
         txtDepositAmount.setText("");
         txtWithdrawAmount.setText("");
@@ -449,7 +480,7 @@ public class AccountPanel extends JPanel {
         }
 
         int accountId = Integer.parseInt(txtId.getText());
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to close Account ID: " + accountId + "? (Balance must be $0.00)", "Confirm Close", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to close Account ID: " + accountId + "? (Balance must be rs.0.00)", "Confirm Close", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             if (accountService.deleteAccount(accountId)) {
@@ -483,7 +514,7 @@ public class AccountPanel extends JPanel {
             }
 
             if (accountService.deposit(accountId, amount)) {
-                JOptionPane.showMessageDialog(this, String.format("Deposit of $%,.2f successful to Account ID %d.", amount, accountId), "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, String.format("Deposit of rs.%,.2f successful to Account ID %d.", amount, accountId), "Success", JOptionPane.INFORMATION_MESSAGE);
                 txtDepositAmount.setText("");
                 loadAccountData();
             } else {
@@ -516,7 +547,7 @@ public class AccountPanel extends JPanel {
             }
 
             if (accountService.withdraw(accountId, amount)) {
-                JOptionPane.showMessageDialog(this, String.format("Withdrawal of $%,.2f successful from Account ID %d.", amount, accountId), "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, String.format("Withdrawal of rs.%,.2f successful from Account ID %d.", amount, accountId), "Success", JOptionPane.INFORMATION_MESSAGE);
                 txtWithdrawAmount.setText("");
                 loadAccountData();
             } else {

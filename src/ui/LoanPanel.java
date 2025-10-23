@@ -184,9 +184,9 @@ class LoanPanel extends JPanel {
         JPanel buttonGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonGroup.setBackground(BG_DARK);
 
-        btnAddMain = createStyledButton("➕ Sanction New Loan", this::handleAddAction, ACCENT_COLOR);
-        btnDeleteMain = createStyledButton("❌ Close Paid Loan", this::handleDeleteAction, Color.RED.darker());
-        btnRefresh = createStyledButton("⟳ Refresh", this::handleRefreshAction, BG_SECONDARY);
+        btnAddMain = createStyledButton(" Sanction New Loan", this::handleAddAction, ACCENT_COLOR);
+        btnDeleteMain = createStyledButton(" Close Paid Loan", this::handleDeleteAction, Color.RED.darker());
+        btnRefresh = createStyledButton(" Refresh", this::handleRefreshAction, BG_SECONDARY);
 
         buttonGroup.add(btnRefresh);
         buttonGroup.add(btnDeleteMain);
@@ -268,8 +268,8 @@ class LoanPanel extends JPanel {
                     loan.getId(),
                     loan.getCustomerId(),
                     loan.getLoanType(),
-                    String.format("$%,.2f", loan.getAmountSanctioned()),
-                    String.format("$%,.2f", loan.getBalance()),
+                    String.format("rs.%,.2f", loan.getAmountSanctioned()),
+                    String.format("rs.%,.2f", loan.getBalance()),
                     loan.getOpenDate(),
                     closeDate
             });
@@ -282,8 +282,8 @@ class LoanPanel extends JPanel {
         cmbLoanType.setSelectedItem(tableModel.getValueAt(row, 2).toString());
 
         // Remove formatting for internal display
-        String amountStr = tableModel.getValueAt(row, 3).toString().replace("$", "").replace(",", "");
-        String balanceStr = tableModel.getValueAt(row, 4).toString().replace("$", "").replace(",", "");
+        String amountStr = tableModel.getValueAt(row, 3).toString().replace("rs.", "").replace(",", "");
+        String balanceStr = tableModel.getValueAt(row, 4).toString().replace("rs.", "").replace(",", "");
 
         txtAmount.setText(amountStr);
         txtBalance.setText(balanceStr);

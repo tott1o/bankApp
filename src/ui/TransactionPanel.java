@@ -65,8 +65,8 @@ class TransactionPanel extends JPanel {
         filterLabel.setForeground(TEXT_LIGHT);
         filterLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        JButton btnFilter = createStyledButton("🔍 Filter", this::handleFilterAction, BG_SECONDARY);
-        JButton btnRefresh = createStyledButton("⟳ All", this::handleRefreshAction, BG_SECONDARY);
+        JButton btnFilter = createStyledButton(" Filter", this::handleFilterAction, BG_SECONDARY);
+        JButton btnRefresh = createStyledButton(" All", this::handleRefreshAction, BG_SECONDARY);
 
         buttonGroup.add(filterLabel);
         buttonGroup.add(txtAccountIdFilter);
@@ -158,7 +158,7 @@ class TransactionPanel extends JPanel {
                     }
                     setHorizontalAlignment(JLabel.RIGHT);
                     // Value is already a Double from loadTransactionData, so formatting is safe.
-                    setValue(String.format("$%,.2f", (Double) value));
+                    setValue(String.format("rs.%,.2f", (Double) value));
                 } else {
                     c.setForeground(TEXT_LIGHT);
                     setHorizontalAlignment(JLabel.LEFT);

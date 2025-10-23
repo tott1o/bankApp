@@ -130,7 +130,7 @@ public class CustomerPanel extends JPanel {
         JLabel label = new JLabel(labelText);
         label.setForeground(TEXT_LIGHT);
         label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        label.setPreferredSize(new Dimension(100, 25)); // Consistent label width
+        label.setPreferredSize(new Dimension(120, 20)); // Consistent label width
 
         row.add(label, BorderLayout.WEST);
         row.add(textField, BorderLayout.CENTER);

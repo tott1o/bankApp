@@ -15,32 +15,28 @@ public class BankingAppUI extends JFrame {
     private final LoanService loanService;
     private final LoanPaymentService loanPaymentService;
 
-    // --- Color Scheme (Consistent with the requested dark/flat UI) ---
-// Recommended Refined Deep Ocean Palette:
-    private static final Color BG_DARK = new Color(33, 47, 60);    // #212F3C
-    static final Color BG_SECONDARY = new Color(44, 62, 80); // #2C3E50
-    private static final Color ACCENT_COLOR = new Color(23, 165, 137); // #17A589 (Emerald Green)
-    private static final Color TEXT_LIGHT = new Color(234, 236, 238); // #EAECEE
-    private static final Color BORDER_COLOR = new Color(73, 95, 116); // #495F74
+    // --- Color Scheme (Declared static final for easy access) ---
+    private static final Color BG_DARK = new Color(44, 62, 80);
+    static final Color BG_SECONDARY = new Color(52, 73, 94);
+    private static final Color ACCENT_COLOR = new Color(48, 154, 154);
+    private static final Color TEXT_LIGHT = new Color(236, 240, 241);
+    private static final Color BORDER_COLOR = new Color(74, 98, 120);
 
-    // FIX: Revert to the no-argument constructor for easy startup from main()
     public BankingAppUI() {
-        super("Modern Dark Theme Banking Management System");
+        super("AANT-bank");
 
-        // --- DAO Initialization ---
+        // --- DAO & Service Initialization ---
         CustomerDAO customerDAO = new CustomerDAO();
         AccountDAO accountDAO = new AccountDAO();
         TransactionDAO transactionDAO = new TransactionDAO();
         LoanDAO loanDAO = new LoanDAO();
         LoanPaymentDAO loanPaymentDAO = new LoanPaymentDAO();
 
-        // FIX: Initialize ALL Services here, once.
+        // Initialize Services
         this.customerService = new CustomerService(customerDAO);
         this.transactionService = new TransactionService(transactionDAO);
-        // AccountService requires both AccountDAO and TransactionDAO
         this.accountService = new AccountService(accountDAO, transactionDAO);
         this.loanService = new LoanService(loanDAO);
-        // LoanPaymentService requires LoanPaymentDAO and LoanDAO
         this.loanPaymentService = new LoanPaymentService(loanPaymentDAO, loanDAO);
 
         setupLookAndFeel();
@@ -51,7 +47,6 @@ public class BankingAppUI extends JFrame {
     private void setupLookAndFeel() {
         // ... (LookAndFeel setup code remains the same) ...
         try {
-            // Use Nimbus as a base for custom theming
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     UIManager.setLookAndFeel(info.getClassName());
@@ -62,7 +57,6 @@ public class BankingAppUI extends JFrame {
             // Fallback to default
         }
 
-        // Custom UIManager settings for dark theme
         UIManager.put("control", BG_SECONDARY);
         UIManager.put("info", BG_SECONDARY);
         UIManager.put("nimbusBase", BG_DARK.darker());
@@ -93,31 +87,53 @@ public class BankingAppUI extends JFrame {
         tabbedPane.setForeground(TEXT_LIGHT);
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        // FIX: Correct Placeholder calls to pass the foreground color (TEXT_LIGHT)
+        // Add all custom panels (using corrected panel constructors)
         tabbedPane.addTab(" Customer", new CustomerPanel(customerService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
         tabbedPane.addTab(" Account", new AccountPanel(accountService, customerService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
-        tabbedPane.addTab(" Transaction", new TransactionPanel(transactionService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
-        tabbedPane.addTab(" Loan", new LoanPanel(loanService, customerService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
-        tabbedPane.addTab(" Loan Payment", new LoanPaymentPanel(loanPaymentService, loanService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
+        // Ensure TransactionPanel is passed the service
+        tabbedPane.addTab("Transaction", new TransactionPanel(transactionService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
+        // Ensure LoanPanel is passed services
+        tabbedPane.addTab("Loan", new LoanPanel(loanService, customerService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
+        // Ensure LoanPaymentPanel is passed services
+        tabbedPane.addTab("Loan Payment", new LoanPaymentPanel(loanPaymentService, loanService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
 
         getContentPane().add(tabbedPane);
         getContentPane().setBackground(BG_DARK);
-        setVisible(true);
+        // setVisible(true) is now called conditionally in the main method
     }
 
-    // FIX: Correct Placeholder method signature to accept foreground color
     private JPanel createPlaceholderPanel(String text, Color bg, Color fg) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(bg);
         JLabel label = new JLabel(text + " - Coming Soon!");
-        label.setForeground(fg); // Use passed fg color
+        label.setForeground(fg);
         label.setFont(new Font("Segoe UI", Font.ITALIC, 24));
         panel.add(label);
         return panel;
     }
 
     public static void main(String[] args) {
-        // FIX: BankingAppUI::new now correctly refers to the no-argument constructor.
-        SwingUtilities.invokeLater(BankingAppUI::new);
+        SwingUtilities.invokeLater(() -> {
+            // 1. Create a temporary frame to center the login dialog
+            JFrame tempFrame = new JFrame();
+            tempFrame.setUndecorated(true); // Hide the temp frame visually
+            tempFrame.setSize(0, 0);
+            tempFrame.setLocationRelativeTo(null);
+            tempFrame.setVisible(true);
+
+            // 2. Show Login Dialog
+            LoginDialog loginDialog = new LoginDialog(tempFrame, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR);
+            loginDialog.setVisible(true);
+
+            // 3. Check Authentication Result
+            if (loginDialog.isAuthenticated()) {
+                // Authentication successful: Launch main application
+                BankingAppUI app = new BankingAppUI();
+                app.setVisible(true);
+            }
+
+            // Dispose of the temporary frame regardless of outcome
+            tempFrame.dispose();
+        });
     }
 }

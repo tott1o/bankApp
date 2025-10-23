@@ -95,7 +95,7 @@ class LoanPaymentPanel extends JPanel {
         gbc.gridwidth = 1;
 
         // Row 4: Button
-        btnRecordPayment = createStyledButton("✅ Record Payment", this::handleRecordPaymentAction, ACCENT_COLOR);
+        btnRecordPayment = createStyledButton(" Record Payment", this::handleRecordPaymentAction, ACCENT_COLOR);
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnPanel.setBackground(FORM_BG_COLOR);
         btnPanel.add(btnRecordPayment);
@@ -221,8 +221,8 @@ class LoanPaymentPanel extends JPanel {
             tableModel.addRow(new Object[]{
                     payment.getId(),
                     payment.getLoanId(),
-                    String.format("$%,.2f", payment.getDisbursementAmount()),
-                    String.format("$%,.2f", payment.getRemainingBalance()),
+                    String.format("rs.%,.2f", payment.getDisbursementAmount()),
+                    String.format("rs.%,.2f", payment.getRemainingBalance()),
                     payment.getPaymentDate(),
                     payment.getReceiptNo()
             });
@@ -235,7 +235,7 @@ class LoanPaymentPanel extends JPanel {
             Loan loan = loanService.getLoan(loanId);
 
             if (loan != null) {
-                lblCurrentLoanBalance.setText(String.format("$%,.2f", loan.getBalance()));
+                lblCurrentLoanBalance.setText(String.format("rs.%,.2f", loan.getBalance()));
                 loadPaymentData(loanId); // Load payment history for this loan
             } else {
                 lblCurrentLoanBalance.setText("LOAN NOT FOUND");
