@@ -1,4 +1,4 @@
-```markdown
+
 # bankApp
 
 A simple banking-application built in Java.  
