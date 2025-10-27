@@ -51,4 +51,63 @@ public class LoanService {
         }
         return loanDAO.deleteLoan(id);
     }
+
+    /**
+     * Apply monthly interest to a single loan.
+     * Interest is calculated as: (balance * annual_rate) / 12
+     * @param loanId The ID of the loan to apply interest to
+     * @return true if interest was applied successfully
+     */
+    public boolean applyMonthlyInterest(int loanId) {
+        Loan loan = loanDAO.getLoanById(loanId);
+        if (loan == null) {
+            System.err.println("Loan not found for applying interest.");
+            return false;
+        }
+
+        if (loan.getInterestRate() <= 0) {
+            System.err.println("Interest rate is not set or zero for loan ID " + loanId);
+            return false;
+        }
+
+        // Calculate monthly interest
+        double monthlyRate = loan.getInterestRate() / 12.0 / 100.0;
+        double interest = loan.getBalance() * monthlyRate;
+        
+        if (interest <= 0.0) {
+            System.err.println("Calculated interest is zero for loan ID " + loanId);
+            return false;
+        }
+
+        loan.setBalance(loan.getBalance() + interest);
+        return loanDAO.updateLoan(loan);
+    }
+
+    /**
+     * Apply monthly interest to all active loans.
+     * @return true if interest was successfully applied to all active loans
+     */
+    public boolean applyMonthlyInterestToAllLoans() {
+        int successCount = 0;
+        int activeCount = 0;
+        List<Loan> loans = loanDAO.getAllLoans();
+        
+        for (Loan loan : loans) {
+            // Skip closed loans
+            if (loan.getCloseDate() != null) continue;
+            activeCount++;
+            
+            try {
+                if (applyMonthlyInterest(loan.getId())) {
+                    successCount++;
+                }
+            } catch (Exception ex) {
+                // Log error and continue with next loan
+                System.err.println("Error applying interest to loan ID " + loan.getId() + ": " + ex.getMessage());
+                return false;
+            }
+        }
+        
+        return successCount == activeCount && activeCount > 0;
+    }
 }

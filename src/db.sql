@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS bank;
-USE bank;
+CREATE DATABASE IF NOT EXISTS bank2;
+USE bank2;
 
 CREATE TABLE IF NOT EXISTS customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS loans (
     loan_type ENUM('PERSONAL_LOAN','HOME_LOAN','VEHICLE_LOAN','GOLD_LOAN') NOT NULL,
     amount_sanctioned DECIMAL(15,2) NOT NULL,
     balance DECIMAL(15,2) NOT NULL,
+    interest_rate DECIMAL(5,2) DEFAULT 0.0,
     open_date DATE NOT NULL,
     close_date DATE,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE

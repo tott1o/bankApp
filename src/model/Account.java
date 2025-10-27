@@ -16,6 +16,7 @@ public class Account {
     private LocalDate openDate;
     private LocalDate closeDate;
     private double balance;
+    private double interestRate; // stored as percentage, e.g., 3.5 means 3.5%
 
     // Getters & Setters
     public int getId() { return id; }
@@ -35,4 +36,7 @@ public class Account {
 
     public double getBalance() { return balance; }
     public void setBalance(double balance) { this.balance = balance; }
+
+    public double getInterestRate() { return interestRate; }
+    public void setInterestRate(double interestRate) { this.interestRate = interestRate; }
 }

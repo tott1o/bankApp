@@ -29,10 +29,12 @@ public class AccountPanel extends JPanel {
     private DefaultTableModel tableModel;
     // All fields used in the form
     private JTextField txtId, txtCustomerId, txtBalance, txtDepositAmount, txtWithdrawAmount;
+    private JTextField txtInterestRate;
     private JComboBox<String> cmbAccountType;
 
     // New/Refactored Buttons for the Toolbar and Sidebar
     private JButton btnAddMain, btnDeleteMain, btnUpdateForm, btnClear, btnRefresh;
+    private JButton btnApplyInterestAll, btnApplyInterestSingle;
 
     // A slightly brighter color for the sidebar contrast
     private final Color FORM_BG_COLOR;
@@ -77,11 +79,12 @@ public class AccountPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-        txtId = createTextField(false);
-        txtCustomerId = createTextField(true);
-        txtBalance = createTextField(false); // Balance is read-only
-        txtDepositAmount = createTextField(true);
-        txtWithdrawAmount = createTextField(true);
+    txtId = createTextField(false);
+    txtCustomerId = createTextField(true);
+    txtBalance = createTextField(false); // Balance is read-only
+    txtInterestRate = createTextField(true);
+    txtDepositAmount = createTextField(true);
+    txtWithdrawAmount = createTextField(true);
         cmbAccountType = createComboBox(Account.AccountType.values());
 
         // --- Account Fields Group ---
@@ -95,10 +98,11 @@ public class AccountPanel extends JPanel {
         gbc.insets = new Insets(5, 0, 5, 0);
         gbc.gridx = 0;
 
-        accountFields.add(createInputRow("ID (Auto):", txtId), gbc);
-        accountFields.add(createInputRow("Customer ID:", txtCustomerId), gbc);
-        accountFields.add(createInputRow("Account Type:", cmbAccountType), gbc);
-        accountFields.add(createInputRow("Current Balance:", txtBalance), gbc);
+    accountFields.add(createInputRow("ID (Auto):", txtId), gbc);
+    accountFields.add(createInputRow("Customer ID:", txtCustomerId), gbc);
+    accountFields.add(createInputRow("Account Type:", cmbAccountType), gbc);
+    accountFields.add(createInputRow("Interest Rate (%):", txtInterestRate), gbc);
+    accountFields.add(createInputRow("Current Balance:", txtBalance), gbc);
 
         // --- Update Button for form fields (Account Type only) ---
         btnUpdateForm = createStyledButton("📝 Apply Changes", this::handleUpdateAction, BG_SECONDARY.brighter());
@@ -114,14 +118,22 @@ public class AccountPanel extends JPanel {
         transactionGroup.setBackground(FORM_BG_COLOR);
         transactionGroup.setBorder(createModernTitledBorder("Quick Transactions"));
 
-        // Deposit Row (Uses corrected createTransactionRow)
-        JPanel depositRow = createTransactionRow("Deposit:", txtDepositAmount, "💸 Deposit", this::handleDepositAction, ACCENT_COLOR);
+    // Deposit Row
+    JPanel depositRow = createTransactionRow("Deposit:", txtDepositAmount, "💸 Deposit", this::handleDepositAction, ACCENT_COLOR);
 
-        // Withdraw Row (Uses corrected createTransactionRow)
-        JPanel withdrawRow = createTransactionRow("💳 Withdraw:", txtWithdrawAmount, "Withdraw", this::handleWithdrawAction, new Color(231, 76, 60));
+    // Withdraw Row
+    JPanel withdrawRow = createTransactionRow("💳 Withdraw:", txtWithdrawAmount, "Withdraw", this::handleWithdrawAction, new Color(231, 76, 60));
 
-        transactionGroup.add(depositRow);
-        transactionGroup.add(withdrawRow);
+    // Apply Interest (single account) button
+    btnApplyInterestSingle = createStyledButton(" Apply Interest", this::handleApplyInterestAction, new Color(34, 139, 34));
+    btnApplyInterestSingle.setForeground(TEXT_LIGHT);
+    JPanel applyInterestPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    applyInterestPanel.setBackground(FORM_BG_COLOR);
+    applyInterestPanel.add(btnApplyInterestSingle);
+
+    transactionGroup.add(depositRow);
+    transactionGroup.add(withdrawRow);
+    transactionGroup.add(applyInterestPanel);
         transactionGroup.add(Box.createVerticalStrut(10));
 
         // Add components to main sidebar panel
@@ -289,11 +301,13 @@ public class AccountPanel extends JPanel {
         JPanel buttonGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonGroup.setBackground(BG_DARK);
 
-        btnAddMain = createStyledButton(" Open New Account", this::handleAddAction, ACCENT_COLOR);
+    btnAddMain = createStyledButton(" Open New Account", this::handleAddAction, ACCENT_COLOR);
         btnDeleteMain = createStyledButton(" Close Account", this::handleDeleteAction, Color.RED.darker());
-        btnRefresh = createStyledButton(" Refresh", this::handleRefreshAction, BG_SECONDARY);
+    btnRefresh = createStyledButton(" Refresh", this::handleRefreshAction, BG_SECONDARY);
+    btnApplyInterestAll = createStyledButton(" Apply Interest (All)", this::handleApplyInterestAllAction, new Color(34, 139, 34));
 
-        buttonGroup.add(btnRefresh);
+    buttonGroup.add(btnRefresh);
+    buttonGroup.add(btnApplyInterestAll);
         buttonGroup.add(btnDeleteMain);
         buttonGroup.add(btnAddMain);
 
@@ -323,7 +337,7 @@ public class AccountPanel extends JPanel {
     }
 
     private JPanel createTablePanel() {
-        String[] columnNames = {"ID", "Customer ID", "Type", "Open Date", "Balance"};
+        String[] columnNames = {"ID", "Customer ID", "Type", "Open Date", "Interest %", "Balance"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -374,7 +388,7 @@ public class AccountPanel extends JPanel {
                     c.setBackground(row % 2 == 0 ? BG_DARK.darker() : BG_DARK.darker().darker());
                 }
                 // Right align balance column
-                setHorizontalAlignment(column == 4 ? JLabel.RIGHT : JLabel.LEFT);
+                setHorizontalAlignment(column == 5 ? JLabel.RIGHT : JLabel.LEFT);
                 setBorder(new EmptyBorder(0, 15, 0, 15));
                 return c;
             }
@@ -385,7 +399,7 @@ public class AccountPanel extends JPanel {
 
         // Column widths
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(4).setPreferredWidth(120);
+        table.getColumnModel().getColumn(5).setPreferredWidth(120);
     }
 
     // --- Data and Action Logic ---
@@ -399,6 +413,7 @@ public class AccountPanel extends JPanel {
                     account.getCustomerId(),
                     account.getAccountType(),
                     account.getOpenDate(),
+                    String.format("%.2f%%", account.getInterestRate()),
                     String.format("rs.%,.2f", account.getBalance()) // Format balance
             });
         }
@@ -408,8 +423,10 @@ public class AccountPanel extends JPanel {
         txtId.setText(tableModel.getValueAt(row, 0).toString());
         txtCustomerId.setText(tableModel.getValueAt(row, 1).toString());
         cmbAccountType.setSelectedItem(tableModel.getValueAt(row, 2).toString());
+        String interestStr = tableModel.getValueAt(row, 4).toString().replace("%", "");
+        txtInterestRate.setText(interestStr);
 
-        String balanceStr = tableModel.getValueAt(row, 4).toString().replace("rs.", "").replace(",", "");
+        String balanceStr = tableModel.getValueAt(row, 5).toString().replace("rs.", "").replace(",", "");
         txtBalance.setText(balanceStr);
         txtDepositAmount.setText("");
         txtWithdrawAmount.setText("");
@@ -419,6 +436,11 @@ public class AccountPanel extends JPanel {
         try {
             int customerId = Integer.parseInt(txtCustomerId.getText());
             double initialBalance = Double.parseDouble(txtBalance.getText().isEmpty() ? "0" : txtBalance.getText());
+            double interestRate = 0.0;
+            try {
+                String ir = txtInterestRate.getText().trim();
+                if (!ir.isEmpty()) interestRate = Double.parseDouble(ir);
+            } catch (NumberFormatException ignored) { }
 
             Customer customer = customerService.getCustomer(customerId);
             if (customer == null) {
@@ -431,6 +453,7 @@ public class AccountPanel extends JPanel {
             newAccount.setAccountType(Account.AccountType.valueOf(cmbAccountType.getSelectedItem().toString()));
             newAccount.setOpenDate(LocalDate.now());
             newAccount.setBalance(initialBalance);
+            newAccount.setInterestRate(interestRate);
 
             if (accountService.createAccount(newAccount)) {
                 JOptionPane.showMessageDialog(this, "Account opened successfully! ID: " + newAccount.getId(), "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -459,8 +482,15 @@ public class AccountPanel extends JPanel {
                 return;
             }
 
-            // Only update the Account Type from the form
+            // Update the Account Type and Interest Rate from the form
             existingAccount.setAccountType(Account.AccountType.valueOf(cmbAccountType.getSelectedItem().toString()));
+            try {
+                String ir = txtInterestRate.getText().trim();
+                if (!ir.isEmpty()) existingAccount.setInterestRate(Double.parseDouble(ir));
+            } catch (NumberFormatException nfe) {
+                JOptionPane.showMessageDialog(this, "Invalid interest rate format.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             if (accountService.updateAccount(existingAccount)) {
                 JOptionPane.showMessageDialog(this, "Account updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -562,9 +592,34 @@ public class AccountPanel extends JPanel {
         txtId.setText("");
         txtCustomerId.setText("");
         txtBalance.setText("");
+        txtInterestRate.setText("");
         txtDepositAmount.setText("");
         txtWithdrawAmount.setText("");
         accountTable.clearSelection();
+    }
+
+    private void handleApplyInterestAction(ActionEvent e) {
+        try {
+            if (txtId.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Select an account first.", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            int accountId = Integer.parseInt(txtId.getText());
+            if (accountService.applyInterest(accountId)) {
+                JOptionPane.showMessageDialog(this, "Interest applied successfully to Account ID " + accountId, "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadAccountData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to apply interest. Check account and interest rate.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid account ID.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleApplyInterestAllAction(ActionEvent e) {
+        int count = accountService.applyInterestToAll();
+        JOptionPane.showMessageDialog(this, String.format("Interest applied to %d accounts.", count), "Interest Applied", JOptionPane.INFORMATION_MESSAGE);
+        loadAccountData();
     }
 
     private void handleRefreshAction(ActionEvent e) {

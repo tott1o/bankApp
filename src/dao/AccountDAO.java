@@ -12,7 +12,7 @@ public class AccountDAO {
 
     // CREATE ACCOUNT
     public boolean addAccount(Account account) {
-        String sql = "INSERT INTO accounts (customer_id, account_type, open_date, close_date, balance) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO accounts (customer_id, account_type, open_date, close_date, balance, interest_rate) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -25,6 +25,7 @@ public class AccountDAO {
                 stmt.setNull(4, Types.DATE);
             }
             stmt.setDouble(5, account.getBalance());
+            stmt.setDouble(6, account.getInterestRate());
 
             return stmt.executeUpdate() > 0;
 
@@ -51,6 +52,7 @@ public class AccountDAO {
                 Date closeDate = rs.getDate("close_date");
                 if (closeDate != null) account.setCloseDate(closeDate.toLocalDate());
                 account.setBalance(rs.getDouble("balance"));
+                account.setInterestRate(rs.getDouble("interest_rate"));
                 return account;
             }
 
@@ -77,6 +79,7 @@ public class AccountDAO {
                 Date closeDate = rs.getDate("close_date");
                 if (closeDate != null) account.setCloseDate(closeDate.toLocalDate());
                 account.setBalance(rs.getDouble("balance"));
+                account.setInterestRate(rs.getDouble("interest_rate"));
                 accounts.add(account);
             }
 
@@ -88,7 +91,7 @@ public class AccountDAO {
 
     // UPDATE ACCOUNT
     public boolean updateAccount(Account account) {
-        String sql = "UPDATE accounts SET customer_id=?, account_type=?, open_date=?, close_date=?, balance=? WHERE id=?";
+        String sql = "UPDATE accounts SET customer_id=?, account_type=?, open_date=?, close_date=?, balance=?, interest_rate=? WHERE id=?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -101,7 +104,8 @@ public class AccountDAO {
                 stmt.setNull(4, Types.DATE);
             }
             stmt.setDouble(5, account.getBalance());
-            stmt.setInt(6, account.getId());
+            stmt.setDouble(6, account.getInterestRate());
+            stmt.setInt(7, account.getId());
 
             return stmt.executeUpdate() > 0;
 

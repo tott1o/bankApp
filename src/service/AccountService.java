@@ -131,4 +131,60 @@ public class AccountService {
         }
         return false;
     }
+
+    /**
+     * Apply interest for a single account. Interest is taken from the account's interestRate (percentage).
+     * Creates a DEPOSIT transaction with narration 'Interest applied'.
+     */
+    public boolean applyInterest(int accountId) {
+        Account account = accountDAO.getAccountById(accountId);
+        if (account == null) {
+            System.err.println("Account not found for applying interest.");
+            return false;
+        }
+
+        double rate = account.getInterestRate();
+        if (rate <= 0) {
+            System.err.println("Interest rate is not set or zero for account ID " + accountId);
+            return false;
+        }
+
+        double interest = account.getBalance() * rate / 100.0; // simple interest for the balance snapshot
+        if (interest <= 0.0) {
+            System.err.println("Calculated interest is zero for account ID " + accountId);
+            return false;
+        }
+
+        // 1. Update account balance
+        account.setBalance(account.getBalance() + interest);
+        if (accountDAO.updateAccount(account)) {
+            // 2. Record interest transaction as a deposit
+            Transaction transaction = new Transaction();
+            transaction.setAccountId(accountId);
+            transaction.setAmount(interest);
+            transaction.setTransactionType(Transaction.TransactionType.DEPOSIT);
+            transaction.setDate(LocalDateTime.now());
+            transaction.setNarration("Interest applied (" + rate + "%)");
+
+            return transactionDAO.addTransaction(transaction);
+        }
+        return false;
+    }
+
+    /**
+     * Apply interest to all accounts. Returns number of accounts successfully credited.
+     */
+    public int applyInterestToAll() {
+        int successCount = 0;
+        List<Account> accounts = accountDAO.getAllAccounts();
+        for (Account acc : accounts) {
+            try {
+                if (applyInterest(acc.getId())) successCount++;
+            } catch (Exception ex) {
+                // continue to next account
+                ex.printStackTrace();
+            }
+        }
+        return successCount;
+    }
 }

@@ -1,0 +1,10 @@
+USE bank;
+
+SELECT * FROM customers;
+SELECT * FROM accounts;
+SELECT * FROM transactions;
+SELECT * FROM loans;
+SELECT * FROM loan_payments;
+SELECT * FROM transfers;
+SELECT * FROM cheques;
+DESCRIBE customers;

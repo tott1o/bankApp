@@ -25,8 +25,9 @@ class LoanPanel extends JPanel {
 
     private JTable loanTable;
     private DefaultTableModel tableModel;
-    private JTextField txtId, txtCustomerId, txtAmount, txtBalance;
+    private JTextField txtId, txtCustomerId, txtAmount, txtBalance, txtInterestRate;
     private JComboBox<String> cmbLoanType;
+    private JButton btnApplyInterestSingle, btnApplyInterestAll;
     private JButton btnAddMain, btnDeleteMain, btnRefresh;
 
     public LoanPanel(LoanService loanService, CustomerService customerService, Color bgDark, Color accent, Color text, Color border) {
@@ -69,6 +70,7 @@ class LoanPanel extends JPanel {
         txtCustomerId = createTextField(true);
         txtAmount = createTextField(true); // Sanctioned Amount
         txtBalance = createTextField(false); // Read-only current balance
+        txtInterestRate = createTextField(true);
         cmbLoanType = createComboBox(LoanType.values());
 
         JPanel loanFields = new JPanel(new GridBagLayout());
@@ -85,7 +87,16 @@ class LoanPanel extends JPanel {
         loanFields.add(createInputRow("Customer ID:", txtCustomerId), gbc);
         loanFields.add(createInputRow("Loan Type:", cmbLoanType), gbc);
         loanFields.add(createInputRow("Sanctioned Amount:", txtAmount), gbc);
+        loanFields.add(createInputRow("Interest Rate (%):", txtInterestRate), gbc);
         loanFields.add(createInputRow("Outstanding Balance:", txtBalance), gbc);
+
+        // Add Apply Interest button for single loan
+        btnApplyInterestSingle = createStyledButton("Apply Monthly Interest", this::handleApplyInterestAction, new Color(34, 139, 34));
+        JPanel interestButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        interestButtonPanel.setBackground(FORM_BG_COLOR);
+        interestButtonPanel.add(btnApplyInterestSingle);
+        gbc.insets = new Insets(10, 0, 5, 0);
+        loanFields.add(interestButtonPanel, gbc);
 
         panel.add(loanFields);
         panel.add(Box.createVerticalGlue());
@@ -187,8 +198,10 @@ class LoanPanel extends JPanel {
         btnAddMain = createStyledButton(" Sanction New Loan", this::handleAddAction, ACCENT_COLOR);
         btnDeleteMain = createStyledButton(" Close Paid Loan", this::handleDeleteAction, Color.RED.darker());
         btnRefresh = createStyledButton(" Refresh", this::handleRefreshAction, BG_SECONDARY);
+        btnApplyInterestAll = createStyledButton(" Apply Interest (All)", this::handleApplyInterestAllAction, new Color(34, 139, 34));
 
         buttonGroup.add(btnRefresh);
+        buttonGroup.add(btnApplyInterestAll);
         buttonGroup.add(btnDeleteMain);
         buttonGroup.add(btnAddMain);
 
@@ -217,7 +230,7 @@ class LoanPanel extends JPanel {
     }
 
     private JPanel createTablePanel() {
-        String[] columnNames = {"ID", "Customer ID", "Type", "Sanctioned Amt", "Balance", "Open Date", "Close Date"};
+        String[] columnNames = {"ID", "Customer ID", "Type", "Sanctioned Amt", "Interest %", "Balance", "Open Date", "Close Date"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -269,6 +282,7 @@ class LoanPanel extends JPanel {
                     loan.getCustomerId(),
                     loan.getLoanType(),
                     String.format("rs.%,.2f", loan.getAmountSanctioned()),
+                    String.format("%.2f%%", loan.getInterestRate()),
                     String.format("rs.%,.2f", loan.getBalance()),
                     loan.getOpenDate(),
                     closeDate
@@ -283,10 +297,12 @@ class LoanPanel extends JPanel {
 
         // Remove formatting for internal display
         String amountStr = tableModel.getValueAt(row, 3).toString().replace("rs.", "").replace(",", "");
-        String balanceStr = tableModel.getValueAt(row, 4).toString().replace("rs.", "").replace(",", "");
+        String balanceStr = tableModel.getValueAt(row, 5).toString().replace("rs.", "").replace(",", "");
+        String interestStr = tableModel.getValueAt(row, 4).toString().replace("%", "");
 
         txtAmount.setText(amountStr);
         txtBalance.setText(balanceStr);
+        txtInterestRate.setText(interestStr);
     }
 
     private void handleAddAction(ActionEvent e) {
@@ -303,6 +319,8 @@ class LoanPanel extends JPanel {
             newLoan.setCustomerId(customerId);
             newLoan.setLoanType(LoanType.valueOf(cmbLoanType.getSelectedItem().toString()));
             newLoan.setAmountSanctioned(amount);
+            double interestRate = Double.parseDouble(txtInterestRate.getText());
+            newLoan.setInterestRate(interestRate);
             newLoan.setOpenDate(LocalDate.now());
 
             if (loanService.createLoan(newLoan)) {
@@ -347,5 +365,55 @@ class LoanPanel extends JPanel {
 
     private void handleRefreshAction(ActionEvent e) {
         loadLoanData();
+    }
+
+    private void handleApplyInterestAction(ActionEvent e) {
+        if (txtId.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a loan first", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int loanId = Integer.parseInt(txtId.getText());
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Apply monthly interest to Loan ID: " + loanId + "?",
+                "Confirm Interest Application",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (loanService.applyMonthlyInterest(loanId)) {
+                JOptionPane.showMessageDialog(this,
+                        "Interest applied successfully!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loadLoanData();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Failed to apply interest. Please try again.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void handleApplyInterestAllAction(ActionEvent e) {
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Apply monthly interest to ALL active loans?",
+                "Confirm Bulk Interest Application",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (loanService.applyMonthlyInterestToAllLoans()) {
+                JOptionPane.showMessageDialog(this,
+                        "Interest applied successfully to all loans!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loadLoanData();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Failed to apply interest to all loans. Please try again.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }
