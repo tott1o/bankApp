@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     open_date DATE NOT NULL,
     close_date DATE,
     balance DECIMAL(15,2) DEFAULT 0.0,
+    interest_rate DECIMAL(5,2) DEFAULT 0.0,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 );
 

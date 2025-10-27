@@ -87,14 +87,10 @@ public class BankingAppUI extends JFrame {
         tabbedPane.setForeground(TEXT_LIGHT);
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        // Add all custom panels (using corrected panel constructors)
         tabbedPane.addTab(" Customer", new CustomerPanel(customerService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
         tabbedPane.addTab(" Account", new AccountPanel(accountService, customerService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
-        // Ensure TransactionPanel is passed the service
         tabbedPane.addTab("Transaction", new TransactionPanel(transactionService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
-        // Ensure LoanPanel is passed services
         tabbedPane.addTab("Loan", new LoanPanel(loanService, customerService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
-        // Ensure LoanPaymentPanel is passed services
         tabbedPane.addTab("Loan Payment", new LoanPaymentPanel(loanPaymentService, loanService, BG_DARK, ACCENT_COLOR, TEXT_LIGHT, BORDER_COLOR));
 
         getContentPane().add(tabbedPane);

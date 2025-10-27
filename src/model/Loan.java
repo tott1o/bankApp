@@ -54,11 +54,15 @@ public class Loan {
      * @return Monthly EMI amount, or 0 if interest rate is 0
      */
     public double calculateMonthlyEMI(int tenureMonths) {
-        if (interestRate == 0 || tenureMonths <= 0) return amountSanctioned / tenureMonths;
-        
+        // Guard against invalid tenure
+        if (tenureMonths <= 0) return 0.0;
+
+        // If interest rate is zero, return simple equal principal installments
+        if (interestRate == 0.0) return amountSanctioned / tenureMonths;
+
         double monthlyRate = interestRate / 12.0 / 100.0;
         double powerTerm = Math.pow(1 + monthlyRate, tenureMonths);
-        
+
         return amountSanctioned * monthlyRate * powerTerm / (powerTerm - 1);
     }
 }

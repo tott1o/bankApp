@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     open_date DATE NOT NULL,
     close_date DATE,
     balance DECIMAL(15,2) DEFAULT 0.0,
+    interest_rate DECIMAL(5,2) DEFAULT 0.0,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 );
 
@@ -162,30 +163,6 @@ CREATE TABLE IF NOT EXISTS loan_payments (
     payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     remaining_balance DECIMAL(15,2) NOT NULL,
     FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS transfers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    sender_account_number INT NOT NULL,
-    receiver_account_number INT,
-    receiver_bank_name VARCHAR(100),
-    ifsc_code VARCHAR(20),
-    amount DECIMAL(15,2) NOT NULL,
-    mode ENUM('NEFT','RTGS') NOT NULL,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_account_number) REFERENCES accounts(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS cheques (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    account_id INT NOT NULL,
-    cheque_number VARCHAR(50) UNIQUE NOT NULL,
-    issue_date DATE NOT NULL,
-    payee_name VARCHAR(100),
-    amount DECIMAL(15,2) NOT NULL,
-    status ENUM('ISSUED','CLEARED','BOUNCED','CANCELLED') NOT NULL,
-    cleared_date DATETIME,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 
